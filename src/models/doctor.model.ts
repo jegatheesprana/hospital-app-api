@@ -32,10 +32,9 @@ const dateSchedule = new Schema<IDateSchedule, DateScheduleModelType>({
 })
 
 interface IDoctor extends Document {
-    username: string,
+    email: string,
     password: string,
     name: string,
-    email: string,
     phoneNumber: string,
     specialization: string,
     feesPerSession: string,
@@ -45,7 +44,7 @@ interface IDoctor extends Document {
 type DoctorModelType = Model<IDoctor>;
 
 const doctorSchema = new Schema<IDoctor, DoctorModelType>({
-    username: {
+    email: {
         type: String,
         required: true,
         unique: true
@@ -55,9 +54,6 @@ const doctorSchema = new Schema<IDoctor, DoctorModelType>({
         required: true
     },
     name: {
-        type: String
-    },
-    email : {
         type: String
     },
     phoneNumber: {

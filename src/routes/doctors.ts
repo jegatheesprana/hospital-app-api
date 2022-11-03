@@ -40,7 +40,7 @@ router.route("/").get((req: Request, res: Response) => {
 
 // To add a doctor
 router.route("/add").post(async (req: Request, res: Response) => {
-	const username = req.body.username; // Required.. can't be undefined
+	const email = req.body.email; // Required.. can't be undefined
 	const password = req.body.password;
 	const name = req.body.name;
 	const phoneNumber = req.body.phoneNumber;
@@ -52,7 +52,7 @@ router.route("/add").post(async (req: Request, res: Response) => {
     const hashedPassword = await hash(password, salt);
 
 	const newDoctor = new Doctor({
-		username,
+		email,
 		password: hashedPassword,
 		name,
 		phoneNumber,
@@ -179,7 +179,7 @@ router.route("/get-slots").post(async (req: Request, res: Response) => {
 });
 
 router.route("/book-slot").post((req: Request, res: Response) => {
-	const patientId = req.body.googleId; // Patient's google id
+	const patientId = req.body.patientId; // Patient's google id
 	const patientName = req.body.patientName; // Patient's name
 	const doctorId = req.body.doctorId; // Doctor's id 606460d2e0dd28cc76d9b0f3 
 	const slotId = req.body.slotId; // Id of that particular slot

@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { Appointment, Feedback } from "../models/appointment.model";
 
-const router = Router();
+const router: Router = Router();
 
 router.route('/add-meet-link').put((req: Request, res: Response) => {
     const meetLink = req.body.meetLink;

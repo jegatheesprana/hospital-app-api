@@ -11,9 +11,8 @@ const stripe = new Stripe("sk_test_51IabQNSCj4BydkZ38AsoDragCM19yaMzGyBVng5KUZnC
     apiVersion: null,
   })
 
-const router = require('express').Router();
-// To get all the patients
-// ** ONLY FOR TESTING **
+const router: Router = Router();
+
 router.route('/').get((req: Request, res: Response) => {
     Patient.find().then(patients => {
         res.status(200).json(patients);
@@ -26,9 +25,9 @@ router.route('/').get((req: Request, res: Response) => {
 
 // To update a patient's phone number
 router.route('/update-phone').put((req: Request, res: Response) => {
-    const googleId = req.body.googleId;
+    const patientId = req.body.patientId;
 
-    Patient.findOne({ googleId: googleId }).then(patient => {
+    Patient.findOne({ _id: patientId }).then(patient => {
         if (patient) {
             patient.phoneNumber = req.body.phoneNumber;
 
@@ -109,10 +108,10 @@ router.route("/login").post(async (req: Request, res: Response) => {
 	}
 });
 
-router.route('/getPatientDetails/:googleId').get(async (req: Request, res: Response) => {
+router.route('/getPatientDetails/:patientId').get(async (req: Request, res: Response) => {
     try {
-        const googleId = req.params.googleId;
-        const patient = await Patient.findOne({ googleId: googleId });
+        const patientId = req.params.patientId;
+        const patient = await Patient.findOne({ _id: patientId });
 
         if (patient) {
             return res.status(200).json(patient);
@@ -129,8 +128,8 @@ router.route('/getPatientDetails/:googleId').get(async (req: Request, res: Respo
 
 router.route('/previous-appointments').post(async (req: Request, res: Response) => {
     try {
-        const googleId = req.body.googleId;
-        const appointments = await Appointment.find({ patientId: googleId });
+        const patientId = req.body.patientId;
+        const appointments = await Appointment.find({ patientId: patientId });
 
         // Get current dateTime
         const date = new Date()
@@ -165,8 +164,8 @@ router.route('/previous-appointments').post(async (req: Request, res: Response) 
 
 router.route('/upcoming-appointments').post(async (req: Request, res: Response) => {
     try {
-        const googleId = req.body.googleId;
-        const appointments = await Appointment.find({ patientId: googleId });
+        const patientId = req.body.patientId;
+        const appointments = await Appointment.find({ patientId: patientId });
 
         // Get current dateTime
         const date = new Date()
