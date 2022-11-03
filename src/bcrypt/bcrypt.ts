@@ -1,9 +1,14 @@
-function hash(plainTextPassword: string, salt: string) {
-	return (plainTextPassword + "," + salt).split(',')[0]
+import bcrypt from 'bcrypt'
+
+async function hash(plainTextPassword: string) {
+	// Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(plainTextPassword, salt);
+	return hashedPassword
 }
 
-function compare(encryptedPassword: string, actualPassword: string) {
-	return hash(encryptedPassword, process.env.PASSWORD_SALT as string) === actualPassword
+function compare(givenPassword: string, actualPassword: string) {
+	return bcrypt.compare(givenPassword, actualPassword)
 }
 
 export{

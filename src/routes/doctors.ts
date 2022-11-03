@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { Doctor, Slot, DateSchedule } from "../models/doctor.model";
 import jwt, { Secret, JwtPayload, SignOptions } from 'jsonwebtoken'
 import { Appointment, Feedback } from "../models/appointment.model";
-import {hash} from '../bcrypt/bcrypt'
+import { hash, compare, genSalt } from "bcrypt";
 
 const router: Router = Router();
 
@@ -39,7 +39,7 @@ router.route("/").get((req: Request, res: Response) => {
 });
 
 // To add a doctor
-router.route("/add").post((req: Request, res: Response) => {
+router.route("/add").post(async (req: Request, res: Response) => {
 	const username = req.body.username; // Required.. can't be undefined
 	const password = req.body.password;
 	const name = req.body.name;
@@ -47,9 +47,13 @@ router.route("/add").post((req: Request, res: Response) => {
 	const specialization = req.body.specialization;
 	const feesPerSession = req.body.feesPerSession;
 
+	// Hash password
+    const salt = await genSalt(10);
+    const hashedPassword = await hash(password, salt);
+
 	const newDoctor = new Doctor({
 		username,
-		password,
+		password: hashedPassword,
 		name,
 		phoneNumber,
 		specialization,
@@ -97,24 +101,13 @@ router.route("/update").put((req: Request, res: Response) => {
 router.route("/login").post(async (req: Request, res: Response) => {
 	try {
 		const username = req.body.username;
-
-		// Password entered by the user
 		const plainTextPassword = req.body.password;
-
-		// Password Salt for hashing purpose
-		const passwordSalt = process.env.PASSWORD_SALT as string;
-
-		// Encrypted password after hashing operation
-		const encryptedPassword = hash(plainTextPassword, passwordSalt)
 
 		const doctor = await Doctor.findOne({
 			username: username,
-			password: encryptedPassword,
 		});
 
-		console.log(doctor);
-
-		if (doctor === null) {
+		if (!doctor || !(await compare(plainTextPassword, doctor.password))) {
 			return res.status(201).json({ message: "wrong username or password" });
 		}
 
@@ -127,7 +120,7 @@ router.route("/login").post(async (req: Request, res: Response) => {
 			} as SignOptions
 		);
 
-		return res.status(200).json({ token: token.toString() });
+		return res.status(200).json({ token: token.toString(), user: {...doctor.toJSON(), type: 'doctor'} });
 
 	} catch (err) {
 		console.log(err);

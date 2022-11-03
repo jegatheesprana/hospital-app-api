@@ -1,29 +1,25 @@
 import { Schema, model, Document } from 'mongoose';
 
 interface IPatient extends Document {
-    googleId: string,
-    email: string,
+    username: string,
     name: string,
-    picture: string,
-    phoneNumber: string
+    phoneNumber: string,
+    password: string
 }
 
 const patientSchema = new Schema<IPatient>({
-    googleId: {
+    username: {
         type: String,
         required: true,
         unique: true
     },
-    email : {
-        type: String
-    },
     name: {
         type: String
     },
-    picture: {
+    phoneNumber: {
         type: String
     },
-    phoneNumber: {
+    password: {
         type: String
     }
 });

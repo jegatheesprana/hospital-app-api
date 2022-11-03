@@ -4,6 +4,7 @@ import { Appointment } from '../models/appointment.model'
 import jwt, { Secret, JwtPayload, SignOptions, DecodeOptions } from 'jsonwebtoken'
 import Stripe from 'stripe';
 import { v4 as uuidv4 } from 'uuid';
+import { hash, compare, genSalt } from 'bcrypt';
 
 const stripe = new Stripe("sk_test_51IabQNSCj4BydkZ38AsoDragCM19yaMzGyBVng5KUZnCNrxCJuj308HmdAvoRcUEe2PEdoORMosOaRz1Wl8UX0Gt00FCuSwYpz", {
     // @ts-ignore
@@ -21,22 +22,7 @@ router.route('/').get((req: Request, res: Response) => {
     })
 })
 
-// To add a patient
-router.route('/add').post((req: Request, res: Response) => {
-    const googleId = req.body.googleId;
-    const name = req.body.name;
-    const picture = req.body.picture;
 
-    const newPatient = new Patient({
-        googleId, name, picture
-    })
-
-    newPatient.save().then(() => {
-        res.status(200).json('Patient added');
-    }).catch(err => {
-        res.status(400).json(`Error : ${err}`);
-    })
-})
 
 // To update a patient's phone number
 router.route('/update-phone').put((req: Request, res: Response) => {
@@ -62,47 +48,66 @@ interface CustomPayload extends JwtPayload {
     sub: string
 }
 
-router.route('/google-login').post(async (req: Request, res: Response) => {
-    try {
-        const tokenId = req.body.tokenId;
+router.route('/signup').post(async (req: Request, res: Response)=> {
+    const username = req.body.username; // Required.. can't be undefined
+	const password = req.body.password;
+	const name = req.body.name;
+	const phoneNumber = req.body.phoneNumber;
 
-        // Decode the jwt
-        const decoded = jwt.verify(tokenId, process.env.KEY as Secret) as CustomPayload;
-        const googleId: string = decoded.sub as string;
+    // Hash password
+    const salt = await genSalt(10);
+    const hashedPassword = await hash(password, salt);
 
-        // Check if the user already exists in the database
-        const patient = await Patient.findOne({ googleId: googleId });
+	const newPatient = new Patient({
+		username,
+		password: hashedPassword,
+		name,
+		phoneNumber,
+	});
 
-        // If the patient is not found
-        if (patient === null) {
-            const { email, name, picture } = decoded;
-            const newPatient = new Patient({
-                googleId, email, name, picture
-            })
-            const savedPromise = await newPatient.save();
-            if (savedPromise) {
-                return res.status(200).json({ phoneNumberExists: false });
-            }
-            else {
-                throw savedPromise;
-            }
-        }
-
-        // If the phone number is not present in the database
-        else if (patient.phoneNumber === undefined) {
-            return res.status(200).json({ phoneNumberExists: false });
-        }
-
-        // Patient's phone number already exists in the database
-        else {
-            return res.status(200).json({ phoneNumberExists: true })
-        }
-    }
-    catch (err) {
-        console.log(err);
-        return res.status(400).json(err);
-    }
+	newPatient
+		.save()
+		.then(() => {
+			res.json("Patient added");
+			// console.log(`${newDoctor} added!`)
+		})
+		.catch((err) => {
+			res.status(400).json(`Error : ${err}`);
+			// console.log(err);
+		});
 })
+
+router.route("/login").post(async (req: Request, res: Response) => {
+	try {
+		const username = req.body.username;
+		const plainTextPassword = req.body.password;
+
+		const patient = await Patient.findOne({
+			username: username,
+		});
+
+        console.log(patient)
+
+		if (patient === null || !(await compare(plainTextPassword, patient.password))) {
+			return res.status(201).json({ message: "wrong username or password" });
+		}
+
+		// Doctor found, return the token to the client side
+		const token = jwt.sign(
+			JSON.stringify(patient),
+			process.env.KEY as Secret, 
+			{
+				algorithm: process.env.ALGORITHM as string,
+			} as SignOptions
+		);
+
+		return res.status(200).json({ token: token.toString(), user: {...patient?.toJSON(), type: 'patient'} });
+
+	} catch (err) {
+		console.log(err);
+		return res.status(400).json(err);
+	}
+});
 
 router.route('/getPatientDetails/:googleId').get(async (req: Request, res: Response) => {
     try {
