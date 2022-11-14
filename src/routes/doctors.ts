@@ -294,6 +294,27 @@ router.route('/todays-appointments').post(async (req: Request, res: Response) =>
 	}
 })
 
+router.route('/all-appointments').post(async (req: Request, res: Response) => {
+	try {
+
+		const doctorId = req.body.doctorId;
+
+		const appointments = await Appointment.find({ doctorId: doctorId });
+
+		const sortedAppointments = appointments.sort((a, b) => {
+			return (
+				Date.parse(a.date + "T" + a.slotTime) - Date.parse(b.date + "T" + b.slotTime)
+			);
+		});
+
+		res.status(200).json(sortedAppointments);
+	}
+	catch (err) {
+		console.log(err);
+		res.status(400).json(err);
+	}
+})
+
 router.route('/previous-appointments').post(async (req: Request, res: Response) => {
 	try {
 		const doctorId = req.body.doctorId;
