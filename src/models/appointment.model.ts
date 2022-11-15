@@ -39,6 +39,7 @@ interface IAppointment extends Document {
     doctorEmail: string,
     patientName: string,
     googleMeetLink: string,
+    meetingId: string,
     feedback: IFeedback
 }
 
@@ -76,6 +77,9 @@ const appointmentSchema = new Schema<IAppointment>({
     },
     googleMeetLink : {
         type : String
+    },
+    meetingId: {
+        type: String
     },
     feedback : feedback
 });

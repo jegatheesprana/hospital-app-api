@@ -6,10 +6,12 @@ const router: Router = Router();
 router.route('/add-meet-link').put((req: Request, res: Response) => {
     const meetLink = req.body.meetLink;
     const appointmentId = req.body.appointmentId;
+    const meetingId = req.body.meetingId;
 
     Appointment.findOne({ _id: appointmentId }).then((appointment) => {
         if (appointment) {
             appointment.googleMeetLink = meetLink;
+            appointment.meetingId = meetingId;
             console.log(`Received meet link : ${meetLink}`);
 
             appointment.save().then(() => {

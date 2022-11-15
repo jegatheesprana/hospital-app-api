@@ -147,7 +147,7 @@ router.route('/previous-appointments').post(async (req: Request, res: Response) 
         currDateTime += seconds < 10 ? (':0' + seconds.toString()) : ':' + seconds.toString()
 
         const filteredAppointments = appointments.filter((appointment) => {
-            return Date.parse(currDateTime) >= Date.parse(appointment.date + 'T' + appointment.slotTime)
+            return Date.parse(currDateTime) >= (Date.parse(appointment.date + 'T' + appointment.slotTime)+30*600000)
         })
 
         const sortedAppointments = filteredAppointments.sort((a, b) => {
@@ -183,7 +183,7 @@ router.route('/upcoming-appointments').post(async (req: Request, res: Response) 
         currDateTime += seconds < 10 ? (':0' + seconds.toString()) : ':' + seconds.toString()
 
         const filteredAppointments = appointments.filter((appointment) => {
-            return Date.parse(currDateTime) <= Date.parse(appointment.date + 'T' + appointment.slotTime)
+            return Date.parse(currDateTime) <= (Date.parse(appointment.date + 'T' + appointment.slotTime)+30*60000)
         })
 
         const sortedAppointments = filteredAppointments.sort((a, b) => {
